@@ -521,7 +521,7 @@ namespace rsx
 			}
 
 			//Execute backend-local tasks first
-			do_local_task(performance_counters.state);
+			do_local_task(performance_counters.state != FIFO_state::running);
 
 			//Update sub-units
 			zcull_ctrl->update(this);
@@ -1302,9 +1302,9 @@ namespace rsx
 		}
 	}
 
-	void thread::do_local_task(FIFO_state state)
+	void thread::do_local_task(bool /*idle*/)
 	{
-		if (!in_begin_end && state != FIFO_state::lock_wait)
+		if (!in_begin_end)
 		{
 			if (!m_invalidated_memory_ranges.empty())
 			{
