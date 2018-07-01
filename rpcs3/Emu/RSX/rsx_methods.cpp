@@ -78,31 +78,35 @@ namespace rsx
 				if (Emu.IsStopped())
 					return;
 
-				if (const auto tdr = (u64)g_cfg.video.driver_recovery_timeout)
+				const auto tdr = (u64)g_cfg.video.driver_recovery_timeout;
+				if (tdr == 0)
 				{
-					if (Emu.IsPaused())
-					{
-						while (Emu.IsPaused())
-						{
-							std::this_thread::sleep_for(1ms);
-						}
-
-						// Reset
-						start = get_system_time();
-					}
-					else
-					{
-						if ((get_system_time() - start) > tdr)
-						{
-							// If longer than driver timeout force exit
-							LOG_ERROR(RSX, "nv406e::semaphore_acquire has timed out. semaphore_address=0x%X", addr);
-							break;
-						}
-					}
+					//No timeout
+					std::this_thread::yield();
+					continue;
 				}
 
-				rsx->on_semaphore_acquire_wait();
-				std::this_thread::yield();
+				if (Emu.IsPaused())
+				{
+					while (Emu.IsPaused())
+					{
+						std::this_thread::yield();
+					}
+
+					//Reset
+					start = get_system_time();
+				}
+				else
+				{
+					if ((get_system_time() - start) > tdr)
+					{
+						//If longer than driver timeout force exit
+						LOG_ERROR(RSX, "nv406e::semaphore_acquire has timed out. semaphore_address=0x%X", addr);
+						break;
+					}
+
+					std::this_thread::yield();
+				}
 			}
 
 			rsx->performance_counters.idle_time += (get_system_time() - start);

@@ -301,15 +301,10 @@ void D3D12GSRender::on_exit()
 	return GSRender::on_exit();
 }
 
-void D3D12GSRender::do_local_task(rsx::FIFO_state state)
+void D3D12GSRender::do_local_task(bool)
 {
-	if (state != rsx::FIFO_state::lock_wait)
-	{
-		//TODO
-		m_frame->clear_wm_events();
-	}
-
-	rsx::thread::do_local_task(state);
+	//TODO
+	m_frame->clear_wm_events();
 }
 
 bool D3D12GSRender::do_method(u32 cmd, u32 arg)
@@ -404,7 +399,7 @@ void D3D12GSRender::end()
 			);
 	}
 
-	m_graphics_state &= ~rsx::pipeline_state::memory_barrier_bits;
+	m_graphics_state = 0;
 
 	std::chrono::time_point<steady_clock> constants_duration_end = steady_clock::now();
 	m_timers.constants_duration += std::chrono::duration_cast<std::chrono::microseconds>(constants_duration_end - constants_duration_start).count();

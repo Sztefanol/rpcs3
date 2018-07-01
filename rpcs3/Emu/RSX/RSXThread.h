@@ -89,7 +89,6 @@ namespace rsx
 		empty = 1,    // PUT == GET
 		spinning = 2, // Puller continuously jumps to self addr (synchronization technique)
 		nop = 3,      // Puller is processing a NOP command
-		lock_wait = 4 // Puller is processing a lock acquire
 	};
 
 	u32 get_vertex_type_size_on_host(vertex_base_type type, u32 size);
@@ -422,7 +421,7 @@ namespace rsx
 		/**
 		 * Execute a backend local task queue
 		 */
-		virtual void do_local_task(FIFO_state state);
+		virtual void do_local_task(bool idle);
 
 	public:
 		virtual std::string get_name() const override;
@@ -547,11 +546,6 @@ namespace rsx
 		 * Any data held in the defined range is discarded
 		 */
 		void on_notify_memory_unmapped(u32 address_base, u32 size);
-
-		/**
-		 * Notify to check internal state during semaphore wait
-		 */
-		void on_semaphore_acquire_wait() { do_local_task(FIFO_state::lock_wait); }
 
 		/**
 		 * Copy rtt values to buffer.

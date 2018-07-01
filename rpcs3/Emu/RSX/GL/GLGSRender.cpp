@@ -1585,6 +1585,8 @@ void GLGSRender::on_invalidate_memory_range(u32 address_base, u32 size)
 
 void GLGSRender::do_local_task(rsx::FIFO_state state)
 {
+	m_frame->clear_wm_events();
+-
 	if (!work_queue.empty())
 	{
 		std::lock_guard<shared_mutex> lock(queue_guard);
@@ -1599,7 +1601,7 @@ void GLGSRender::do_local_task(rsx::FIFO_state state)
 			q.processed = true;
 		}
 	}
-	else if (!in_begin_end && state != rsx::FIFO_state::lock_wait)
+	else if (!in_begin_end)
 	{
 		if (m_graphics_state & rsx::pipeline_state::framebuffer_reads_dirty)
 		{
@@ -1610,16 +1612,6 @@ void GLGSRender::do_local_task(rsx::FIFO_state state)
 		}
 	}
 
-	rsx::thread::do_local_task(state);
-
-	if (state == rsx::FIFO_state::lock_wait)
-	{
-		// Critical check finished
-		return;
-	}
-
-	m_frame->clear_wm_events();
-
 	if (m_overlay_manager)
 	{
 		if (!in_begin_end && native_ui_flip_request.load())
@@ -1628,6 +1620,8 @@ void GLGSRender::do_local_task(rsx::FIFO_state state)
 			flip((s32)current_display_buffer);
 		}
 	}
+
+	rsx::thread::do_local_task(idle);
 }
 
 work_item& GLGSRender::post_flush_request(u32 address, gl::texture_cache::thrashed_set& flush_data)
