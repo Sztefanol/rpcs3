@@ -44,6 +44,17 @@ struct work_item
 	volatile bool processed = false;
 	volatile bool result = false;
 	volatile bool received = false;
+
+	void producer_wait()
+	{
+		while (!processed)
+		{
+			_mm_lfence();
+			std::this_thread::yield();
+		}
+
+		received = true;
+	}
 };
 
 struct driver_state
